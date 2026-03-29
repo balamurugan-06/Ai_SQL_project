@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>AI Data Analyst Assistant</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+--bg:#0f1117;
+--panel:#151922;
+--panel2:#1c212c;
+--border:#2a3140;
+
+--accent:#5b9cff;
+--accent2:#8ab4ff;
+
+--text:#e6edf3;
+--text-soft:#9aa4b2;
+
+--radius:10px;
+--shadow:0 10px 40px rgba(0,0,0,0.6);
+}
+
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+body{
+font-family:Manrope,sans-serif;
+background:linear-gradient(135deg,#0b0d12,#0f1117);
+color:var(--text);
+min-height:100vh;
+padding-bottom:80px;
+}
+
+h1{
+text-align:center;
+font-size:48px;
+font-weight:700;
+letter-spacing:.03em;
+padding:60px 20px 30px 20px;
+color:white;
+}
+
+.tabs{
+display:flex;
+justify-content:center;
+gap:20px;
+margin-bottom:40px;
+}
+
+.tabs button{
+padding:14px 30px;
+font-size:14px;
+font-weight:600;
+border-radius:30px;
+border:1px solid var(--border);
+background:var(--panel);
+color:var(--text-soft);
+cursor:pointer;
+transition:all .25s ease;
+}
+
+.tabs button:hover{
+background:var(--accent);
+color:white;
+border-color:var(--accent);
+transform:translateY(-2px);
+}
+
+#sqlTab,
+#vizTab{
+max-width:1000px;
+margin:auto;
+padding:40px;
+background:rgba(21,25,34,.8);
+backdrop-filter:blur(12px);
+border:1px solid var(--border);
+border-radius:var(--radius);
+box-shadow:var(--shadow);
+animation:fadeIn .4s ease;
+}
+
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(10px)}
+to{opacity:1;transform:translateY(0)}
+}
+
+h3{
+margin-top:30px;
+margin-bottom:10px;
+font-size:13px;
+text-transform:uppercase;
+letter-spacing:.15em;
+color:var(--text-soft);
+}
+
+input{
+width:65%;
+padding:14px 16px;
+border-radius:8px;
+border:1px solid var(--border);
+background:var(--panel2);
+color:var(--text);
+font-size:14px;
+outline:none;
+transition:.2s;
+}
+
+input::placeholder{
+color:#6b7280;
+}
+
+input:focus{
+border-color:var(--accent);
+box-shadow:0 0 0 2px rgba(91,156,255,.2);
+}
+
+#sqlTab button,
+#vizTab button{
+padding:12px 24px;
+margin-left:10px;
+border-radius:8px;
+border:none;
+background:var(--accent);
+color:white;
+font-size:13px;
+font-weight:600;
+cursor:pointer;
+transition:.25s;
+}
+
+#sqlTab button:hover,
+#vizTab button:hover{
+background:var(--accent2);
+transform:translateY(-2px);
+box-shadow:0 8px 18px rgba(0,0,0,.4);
+}
+
+#sqlOutput{
+margin-top:10px;
+background:#0b0f14;
+border:1px solid var(--border);
+border-radius:8px;
+padding:18px;
+font-family:"JetBrains Mono",monospace;
+font-size:13px;
+color:#8ab4ff;
+min-height:60px;
+}
+
+#tableResult{
+margin-top:20px;
+overflow:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:var(--panel2);
+border-radius:8px;
+overflow:hidden;
+}
+
+th{
+background:#202635;
+font-size:12px;
+text-transform:uppercase;
+letter-spacing:.08em;
+color:#9aa4b2;
+padding:14px;
+}
+
+td{
+padding:12px;
+font-size:14px;
+border-top:1px solid var(--border);
+}
+
+tr:hover td{
+background:#22293a;
+}
+
+#chartSuggestion{
+display:inline-block;
+margin-bottom:16px;
+padding:6px 12px;
+border-radius:6px;
+font-size:12px;
+font-weight:600;
+background:#1f2634;
+color:#8ab4ff;
+border:1px solid var(--border);
+}
+
+select{
+padding:12px 16px;
+border-radius:8px;
+border:1px solid var(--border);
+background:var(--panel2);
+color:var(--text);
+font-size:14px;
+margin-right:10px;
+}
+
+#chartCanvas{
+margin-top:20px;
+background:white;
+border-radius:8px;
+padding:10px;
+}
+
+.ai-loader{
+display:flex;
+flex-direction:column;
+align-items:center;
+padding:20px;
+color:#8ab4ff;
+}
+
+.spinner{
+width:30px;
+height:30px;
+border:4px solid #2a3140;
+border-top:4px solid #5b9cff;
+border-radius:50%;
+animation:spin 1s linear infinite;
+margin-bottom:10px;
+}
+
+@keyframes spin{
+0%{transform:rotate(0)}
+100%{transform:rotate(360deg)}
+}
+
+.chart-explain{
+margin-top:15px;
+padding:12px;
+background:#151922;
+border-left:4px solid #5b9cff;
+font-size:14px;
+color:#9aa4b2;
+border-radius:6px;
+}
+
+@media(max-width:768px){
+
+#sqlTab,#vizTab{
+padding:25px;
+}
+
+input{
+width:100%;
+margin-bottom:10px;
+}
+
+#sqlTab button{
+margin-left:0;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>AI Data Analyst Assistant</h1>
+
+<div class="tabs">
+
+<button onclick="showTab('sql')">SQL Assistant</button>
+<button onclick="showTab('viz')">Visualization</button>
+
+</div>
+
+<div id="sqlTab">
+
+ <div style="margin-bottom: 15px;">
+    <input type="file" id="csvFile">
+    <button onclick="uploadCSV()">Upload</button>
+    <p id="uploadStatus"></p>
+</div>
+
+
+
+
+<h3>Select Table / Sheet</h3>
+<select id="tableSelect">
+<option value="">-- Select Table --</option>
+</select>
+<h3>Ask your data question</h3>
+<input id="question" placeholder="Ask a question (e.g., total sales by region)">
+
+<button onclick="runQuery()">Run Query</button>
+
+<div id="loader" class="ai-loader" style="display:none">
+<div class="spinner"></div>
+AI is analyzing your data...
+</div>
+
+<h3>Generated SQL</h3>
+
+<pre id="sqlOutput"></pre>
+
+<h3>Results</h3>
+
+<div id="tableResult"></div>
+<p id="noDataMsg" style="color: gray;"></p>
+
+<h3>Insights</h3>
+    <button onclick="generateInsights()">Generate Insights</button>
+    <div id="insights"></div>
+</div>
+
+
+
+
+<div id="vizTab" style="display:none">
+
+<h3>Visualization</h3>
+
+<p id="chartSuggestion"></p>
+
+<select id="chartType">
+
+<option value="bar">Bar Chart</option>
+<option value="pie">Pie Chart</option>
+<option value="line">Line Chart</option>
+<option value="scatter">Scatter</option>
+
+</select>
+
+<button onclick="generateChart()">Create Chart</button>
+
+<canvas id="chartCanvas" width="600" height="300"></canvas>
+
+<p id="chartExplanation" class="chart-explain"></p>
+
+</div>
+
+<script>
+let currentColumns = [];
+let currentData = [];
+
+
+let lastResult = null
+let chartInstance = null
+
+function showTab(tab){
+
+document.getElementById("sqlTab").style.display="none"
+document.getElementById("vizTab").style.display="none"
+
+if(tab=="sql"){
+document.getElementById("sqlTab").style.display="block"
+}
+
+if(tab=="viz"){
+document.getElementById("vizTab").style.display="block"
+}
+
+}
+
+async function runQuery(){
+
+    const loader = document.getElementById("loader");
+    loader.style.display = "flex";
+
+    const tables = document.getElementById("tableSelect").value;
+    const userInput = document.getElementById("question").value;
+
+    // Validation
+    if(!tables){
+        alert("Please select a table");
+        loader.style.display="none";
+        return;
+    }
+
+    if(!userInput){
+        alert("Please enter a question");
+        loader.style.display="none";
+        return;
+    }
+
+    // Clear old results
+    document.getElementById("tableResult").innerHTML = "";
+    document.getElementById("sqlOutput").innerText = "";
+
+    const response = await fetch("/query", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            question: userInput,
+            table: tables
+        })
+    });
+
+    const data = await response.json();
+
+    loader.style.display = "none";
+
+    // Error handling
+    if(data.error){
+        alert(data.error);
+        return;
+    }
+
+    document.getElementById("sqlOutput").innerText = data.generated_sql;
+
+    lastResult = data;
+    currentColumns = data.columns;
+    currentData = data.data;
+
+    if(!data.data || data.data.length === 0){
+        document.getElementById("tableResult").innerHTML = "No results";
+        return;
+    }
+
+    let table = "<table><tr>";
+
+    data.columns.forEach(col=>{
+        table += "<th>" + col + "</th>";
+    });
+
+    table += "</tr>";
+
+    data.data.forEach(row=>{
+        table += "<tr>";
+
+        row.forEach(cell=>{
+            table += "<td>" + cell + "</td>";
+        });
+
+        table += "</tr>";
+    });
+
+    table += "</table>";
+
+    document.getElementById("tableResult").innerHTML = table;
+
+    suggestChart();
+}
+
+async function suggestChart(){
+
+    if(!lastResult || !lastResult.data || lastResult.data.length === 0){
+        return;
+    }
+
+    document.getElementById("chartSuggestion").innerText = "Analyzing chart...";
+
+    const response = await fetch("/chart-suggestion", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            columns: lastResult.columns,
+            data: lastResult.data
+        })
+    });
+
+    const result = await response.json();
+
+    if(result.error){
+        console.error(result.error);
+        return;
+    }
+
+    const suggestion = (result.suggestions && result.suggestions.length > 0)
+        ? result.suggestions[0]
+        : "bar";
+
+    document.getElementById("chartSuggestion").innerText =
+        "Suggested Chart: " + suggestion.toUpperCase();
+
+    document.getElementById("chartType").value = suggestion;
+
+    generateChart();
+}
+
+function generateChart(){
+
+    if(!lastResult || !lastResult.data || lastResult.data.length === 0){
+        alert("No data to visualize");
+        return;
+    }
+
+    const chartType = document.getElementById("chartType").value;
+
+    const ctx = document.getElementById("chartCanvas").getContext("2d");
+
+    if(chartInstance){
+        chartInstance.destroy();
+    }
+
+    // Handle single column case
+    if(lastResult.columns.length === 1){
+
+        const counts = {};
+
+        lastResult.data.forEach(row => {
+            const key = row[0];
+            counts[key] = (counts[key] || 0) + 1;
+        });
+
+        const labels = Object.keys(counts);
+        const values = Object.values(counts);
+
+        chartInstance = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Count",
+                    data: values
+                }]
+            }
+        });
+
+        explainChart();
+        return;
+    }
+
+    const labels = lastResult.data.map(row => row[0] ?? "N/A");
+    const values = lastResult.data.map(row => Number(row[1]) || 0);
+
+    chartInstance = new Chart(ctx, {
+        type: chartType,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: lastResult.columns[1] || "Value",
+                data: values
+            }]
+        },
+        options: {
+            responsive: true,
+            animation: {
+                duration: 1200,
+                easing: 'easeOutQuart'
+            },
+            plugins: {
+                legend: { display: true }
+            }
+        }
+    });
+
+    explainChart();
+}
+
+function explainChart(){
+
+    const type = document.getElementById("chartType").value;
+    const exp = document.getElementById("chartExplanation");
+
+    if(type === "bar"){
+        exp.innerText = "Bar chart compares values between different categories.";
+    }
+    else if(type === "pie"){
+        exp.innerText = "Pie chart shows percentage distribution across categories.";
+    }
+    else if(type === "line"){
+        exp.innerText = "Line chart shows trends or changes over time.";
+    }
+    else if(type === "scatter"){
+        exp.innerText = "Scatter chart reveals relationships between numeric variables.";
+    }
+    else{
+        exp.innerText = "Chart helps visualize data patterns and insights.";
+    }
+}
+
+document.getElementById("question").addEventListener("keypress", function(e){
+    if(e.key === "Enter"){
+        const value = e.target.value.trim();
+
+        if(value){
+            runQuery();
+        } else {
+            alert("Please enter a question");
+        }
+    }
+});
+
+
+async function generateInsights() {
+
+    if(!currentData || currentData.length === 0){
+        alert("Run a query first to generate insights");
+        return;
+    }
+
+    const insightsDiv = document.getElementById("insights");
+    insightsDiv.innerText = "Generating insights...";
+
+    const response = await fetch("/insight", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            columns: currentColumns,
+            data: currentData
+        })
+    });
+
+    const result = await response.json();
+
+    if(result.error){
+        insightsDiv.innerText = "";
+        alert(result.error);
+        return;
+    }
+
+    insightsDiv.innerText = result.insight;
+}
+
+
+
+async function uploadCSV() {
+
+    const fileInput = document.getElementById("csvFile");
+    const status = document.getElementById("uploadStatus");
+
+    if(!fileInput.files.length){
+        alert("Please select a file first");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    status.innerText = "Uploading...";
+
+    const response = await fetch("/upload", {
+        method: "POST",
+        body: formData
+    });
+
+    const data = await response.json();
+
+    if(data.error){
+        status.innerText = "";
+        alert(data.error);
+        return;
+    }
+
+    if (data.tables) {
+        populateTables(data.tables);
+
+        status.innerText = "File uploaded successfully";
+
+        // Auto select first table
+        document.getElementById("tableSelect").value = data.tables[0];
+    }
+}
+
+
+function populateTables(tables) {
+
+    const select = document.getElementById("tableSelect");
+
+    // Reset with default option
+    select.innerHTML = '<option value="">-- Select Table --</option>';
+
+    if(!tables || tables.length === 0){
+        return;
+    }
+
+    tables.forEach(table => {
+        const option = document.createElement("option");
+        option.value = table;
+        option.textContent = table;
+        select.appendChild(option);
+    });
+
+    // Auto-select first table
+    select.value = tables[0];
+}
+
+
+</script>
+
+</body>
+</html>
